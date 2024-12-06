@@ -18,6 +18,7 @@ class SettingsActivity : AppCompatActivity() {
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
 
         val saveButton: Button = findViewById(R.id.save_button)
+        val cancelButton: Button = findViewById(R.id.cancel_button)
         val serverNameEditText: EditText = findViewById(R.id.server_name_edit_text)
         val clientMacAddressEditText: EditText = findViewById(R.id.client_mac_address_edit_text)
 
@@ -46,6 +47,10 @@ class SettingsActivity : AppCompatActivity() {
                 // Show an error message
                 Toast.makeText(this, "Invalid MAC address format", Toast.LENGTH_SHORT).show()
             }
+        }
+
+        cancelButton.setOnClickListener {
+            finish()
         }
     }
 

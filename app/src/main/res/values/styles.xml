@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="SettingsMenuItem">
+        <item name="android:textColor">@color/settings_menu_item_text_color</item>
+        <item name="android:background">@color/settings_menu_item_backgroud_color</item>
+    </style>
+</resources>
