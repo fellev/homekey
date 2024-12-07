@@ -45,10 +45,12 @@ import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.getSystemService
+import androidx.lifecycle.LiveData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import java.util.UUID
 
 
@@ -67,11 +69,13 @@ class GATTServerSampleService : Service() {
 
         const val ACTION_START_ADVERTISING = "start_ad"
         const val ACTION_STOP_ADVERTISING = "stop_ad"
+//        const val ACTION_START_SERVER = "start_srv"
 
         // Important: this is just for simplicity, there are better ways to communicate between
         // a service and an activity/view
         val serverLogsState: MutableStateFlow<String> = MutableStateFlow("")
-        val isServerRunning = MutableStateFlow(false)
+        val _isServerRunning = MutableStateFlow(false)
+        val isServerRunning: StateFlow<Boolean> get() = _isServerRunning
 
         private const val CHANNEL = "gatt_server_channel"
     }
@@ -107,7 +111,7 @@ class GATTServerSampleService : Service() {
         val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         bluetoothAdapter = bluetoothManager.adapter
         // Change the device name
-        bluetoothAdapter.name = "Android Server"
+//        bluetoothAdapter.name = "Android Server"
 
         // If we are missing permission stop the service
         val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -122,7 +126,7 @@ class GATTServerSampleService : Service() {
             serverLogsState.value = "Opening GATT server...\n"
             server = manager.openGattServer(applicationContext, SampleServerCallback())
             server.addService(service)
-            isServerRunning.value = true
+            _isServerRunning.value = true
         } else {
             serverLogsState.value = "Missing connect permission\n"
             stopSelf()
@@ -154,7 +158,7 @@ class GATTServerSampleService : Service() {
     @SuppressLint("MissingPermission")
     override fun onDestroy() {
         super.onDestroy()
-        isServerRunning.value = false
+        _isServerRunning.value = false
         if (hasAdvertisingPermission()) {
             advertiser.stopAdvertising(SampleAdvertiseCallback)
         }

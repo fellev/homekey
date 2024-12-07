@@ -1,7 +1,10 @@
 package com.example.mobilekey
 
 import android.Manifest
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothAdapter.getDefaultAdapter
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.Menu
@@ -19,9 +22,13 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.mobilekey.databinding.ActivityMainBinding
 import com.example.mobilekey.server.GATTServerSampleService
 import com.example.mobilekey.server.GATTServerSampleService.Companion.serverLogsState
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import androidx.preference.PreferenceManager
 
 class MainActivity : AppCompatActivity() {
 
@@ -49,27 +56,27 @@ class MainActivity : AppCompatActivity() {
 //                .setAction("Action", null)
 //                .setAnchorView(R.id.fab).show()
 //        }
-        val drawerLayout: DrawerLayout = binding.drawerLayout
-        val navView: NavigationView = binding.navView
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
+//        val drawerLayout: DrawerLayout = binding.drawerLayout
+//        val navView: NavigationView = binding.navView
+//        val navController = findNavController(R.id.nav_host_fragment_content_main)
         serverStatusTextView = findViewById(R.id.server_status_text_view)
         startServerButton = findViewById(R.id.start_server_button)
         stopServerButton = findViewById(R.id.stop_server_button)
         serverLogsTextView = findViewById(R.id.server_logs_text_view)
 
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADVERTISE) != PackageManager.PERMISSION_GRANTED ) {
+            ActivityCompat.requestPermissions(this, arrayOf(
+                Manifest.permission.BLUETOOTH_CONNECT,
+                Manifest.permission.BLUETOOTH_SCAN,
+                Manifest.permission.BLUETOOTH_ADVERTISE), REQUEST_BLUETOOTH_CONNECT)
+        } else {
+            startServer()
+        }
+
         startServerButton.setOnClickListener {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADVERTISE) != PackageManager.PERMISSION_GRANTED
-                ) {
-                ActivityCompat.requestPermissions(this, arrayOf(
-                    Manifest.permission.BLUETOOTH_CONNECT,
-                    Manifest.permission.BLUETOOTH_SCAN,
-                    Manifest.permission.BLUETOOTH_ADVERTISE
-                ), REQUEST_BLUETOOTH_CONNECT)
-            } else {
-                startServer()
-            }
+            startServer()
         }
 
         stopServerButton.setOnClickListener {
@@ -79,16 +86,23 @@ class MainActivity : AppCompatActivity() {
 
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
-        appBarConfiguration = AppBarConfiguration(
-            setOf(
-                R.id.nav_home, R.id.nav_gallery, R.id.nav_slideshow
-            ), drawerLayout
-        )
-        setupActionBarWithNavController(navController, appBarConfiguration)
-        navView.setupWithNavController(navController)
+//        appBarConfiguration = AppBarConfiguration(
+//            setOf(
+//                R.id.nav_home, R.id.nav_gallery, R.id.nav_slideshow
+//            ), drawerLayout
+//        )
+//        setupActionBarWithNavController(navController, appBarConfiguration)
+//        navView.setupWithNavController(navController)
 
         // Initial update of server logs
         updateServerLogs()
+
+        // Observe server running state
+        lifecycleScope.launch {
+            GATTServerSampleService.isServerRunning.collectLatest { isRunning ->
+                serverStatusTextView.text = "Server status: ${if (isRunning) "Running" else "Stopped"}"
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -113,7 +127,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun setBluetoothAdapterName() {
+        val sharedPreferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        val serverName = sharedPreferences.getString("server_name", "Default Server Name")
+
+        val bluetoothAdapter: BluetoothAdapter? = getDefaultAdapter()
+        bluetoothAdapter?.name = serverName
+    }
+
     private fun startServer() {
+        setBluetoothAdapterName()
         val intent = Intent(this, GATTServerSampleService::class.java).apply {
             action = GATTServerSampleService.ACTION_START_ADVERTISING
         }
