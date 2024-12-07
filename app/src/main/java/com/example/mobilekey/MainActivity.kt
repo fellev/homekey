@@ -1,10 +1,7 @@
 package com.example.mobilekey
 
 import android.Manifest
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothAdapter.getDefaultAdapter
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.Menu
@@ -28,7 +25,7 @@ import com.example.mobilekey.server.GATTServerSampleService
 import com.example.mobilekey.server.GATTServerSampleService.Companion.serverLogsState
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import androidx.preference.PreferenceManager
+import com.example.mobilekey.server.ServerUtils
 
 class MainActivity : AppCompatActivity() {
 
@@ -72,16 +69,15 @@ class MainActivity : AppCompatActivity() {
                 Manifest.permission.BLUETOOTH_SCAN,
                 Manifest.permission.BLUETOOTH_ADVERTISE), REQUEST_BLUETOOTH_CONNECT)
         } else {
-            startServer()
+            ServerUtils.startServer(this)
         }
 
         startServerButton.setOnClickListener {
-            startServer()
+            ServerUtils.startServer(this)
         }
 
         stopServerButton.setOnClickListener {
-            stopService(Intent(this, GATTServerSampleService::class.java))
-            serverStatusTextView.text = "Server status: Stopped"
+            stopServer()
         }
 
         // Passing each menu ID as a set of Ids because each
@@ -127,27 +123,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setBluetoothAdapterName() {
-        val sharedPreferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
-        val serverName = sharedPreferences.getString("server_name", "Default Server Name")
-
-        val bluetoothAdapter: BluetoothAdapter? = getDefaultAdapter()
-        bluetoothAdapter?.name = serverName
-    }
-
-    private fun startServer() {
-        setBluetoothAdapterName()
-        val intent = Intent(this, GATTServerSampleService::class.java).apply {
-            action = GATTServerSampleService.ACTION_START_ADVERTISING
-        }
-        startService(intent)
-        serverStatusTextView.text = "Server status: Running"
-        updateServerLogs()
-    }
-
     private fun stopServer() {
-        stopService(Intent(this, GATTServerSampleService::class.java))
-        serverStatusTextView.text = "Server status: Stopped"
+        ServerUtils.stopServer(this)
         updateServerLogs()
     }
 
@@ -164,7 +141,7 @@ class MainActivity : AppCompatActivity() {
                         grantResults[1] == PackageManager.PERMISSION_GRANTED &&
                         grantResults[2] == PackageManager.PERMISSION_GRANTED
                     )) {
-                startServer()
+                ServerUtils.startServer(this)
             } else {
                 // Permission denied
                 serverStatusTextView.text = "Permission denied: Cannot start server"
