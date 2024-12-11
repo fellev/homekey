@@ -1,7 +1,9 @@
 package com.example.mobilekey
 
 import android.Manifest
+import android.bluetooth.BluetoothAdapter
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.Menu
@@ -79,6 +81,10 @@ class MainActivity : AppCompatActivity() {
         stopServerButton.setOnClickListener {
             stopServer()
         }
+
+        val bluetoothStateReceiver = BluetoothStateReceiver()
+        val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
+        registerReceiver(bluetoothStateReceiver, filter)
 
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
