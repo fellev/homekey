@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.mobilekey.server
+package com.homekey.server
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -45,7 +45,6 @@ import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.getSystemService
-import androidx.lifecycle.LiveData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel

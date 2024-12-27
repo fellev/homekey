@@ -1,4 +1,4 @@
-package com.example.mobilekey.server
+package com.homekey.server
 
 import android.annotation.SuppressLint
 import android.content.Context

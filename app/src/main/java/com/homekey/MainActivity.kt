@@ -1,4 +1,4 @@
-package com.example.mobilekey
+package com.homekey
 
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
@@ -10,24 +10,19 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.TextView
-import com.google.android.material.snackbar.Snackbar
-import com.google.android.material.navigation.NavigationView
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
-import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
-import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
-import com.example.mobilekey.databinding.ActivityMainBinding
-import com.example.mobilekey.server.GATTServerSampleService
-import com.example.mobilekey.server.GATTServerSampleService.Companion.serverLogsState
+import com.homekey.databinding.ActivityMainBinding
+import com.homekey.server.GATTServerSampleService
+import com.homekey.server.GATTServerSampleService.Companion.serverLogsState
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import com.example.mobilekey.server.ServerUtils
+import com.homekey.server.ServerUtils
 
 class MainActivity : AppCompatActivity() {
 
@@ -69,7 +64,8 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this, arrayOf(
                 Manifest.permission.BLUETOOTH_CONNECT,
                 Manifest.permission.BLUETOOTH_SCAN,
-                Manifest.permission.BLUETOOTH_ADVERTISE), REQUEST_BLUETOOTH_CONNECT)
+                Manifest.permission.BLUETOOTH_ADVERTISE), REQUEST_BLUETOOTH_CONNECT
+            )
         } else {
             ServerUtils.startServer(this)
         }

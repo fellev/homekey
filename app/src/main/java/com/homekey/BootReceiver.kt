@@ -1,10 +1,10 @@
-package com.example.mobilekey
+package com.homekey
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import com.example.mobilekey.server.ServerUtils
+import com.homekey.server.ServerUtils
 
 class BootReceiver : BroadcastReceiver() {
 

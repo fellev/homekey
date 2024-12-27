@@ -1,4 +1,4 @@
-package com.example.mobilekey
+package com.homekey
 
 import android.content.SharedPreferences
 import android.os.Bundle

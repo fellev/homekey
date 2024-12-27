@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "mobilekey"
+rootProject.name = "homekey"
 include(":app")
  

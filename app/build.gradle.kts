@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.mobilekey"
+    namespace = "com.homekey"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.mobilekey"
+        applicationId = "com.homekey"
         minSdk = 34
         targetSdk = 34
         versionCode = 1

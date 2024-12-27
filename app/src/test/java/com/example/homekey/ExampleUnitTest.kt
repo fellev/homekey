@@ -1,4 +1,4 @@
-package com.example.mobilekey
+package com.homekey
 
 import org.junit.Test
 
