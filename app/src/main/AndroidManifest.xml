@@ -60,7 +60,7 @@
         </receiver>
 
         <service
-            android:name=".server.GATTServerSampleService"
+            android:name=".server.BluetoothServerService"
             android:foregroundServiceType="connectedDevice" />
 
         <activity

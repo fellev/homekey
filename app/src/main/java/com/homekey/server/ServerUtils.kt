@@ -20,14 +20,14 @@ object ServerUtils {
 
     fun startServer(context: Context) {
         setBluetoothAdapterName(context)
-        val intent = Intent(context, GATTServerSampleService::class.java).apply {
-            action = GATTServerSampleService.ACTION_START_ADVERTISING
+        val intent = Intent(context, BluetoothServerService::class.java).apply {
+            action = BluetoothServerService.ACTION_START_SERVER
         }
         context.startService(intent)
     }
 
     fun stopServer(context: Context) {
-        val intent = Intent(context, GATTServerSampleService::class.java)
+        val intent = Intent(context, BluetoothServerService::class.java)
         context.stopService(intent)
     }
 }
