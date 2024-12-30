@@ -18,8 +18,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.homekey.databinding.ActivityMainBinding
-import com.homekey.server.GATTServerSampleService
-import com.homekey.server.GATTServerSampleService.Companion.serverLogsState
+import com.homekey.server.BluetoothServerService
+import com.homekey.server.BluetoothServerService.Companion.serverLogsState
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import com.homekey.server.ServerUtils
@@ -97,7 +97,7 @@ class MainActivity : AppCompatActivity() {
 
         // Observe server running state
         lifecycleScope.launch {
-            GATTServerSampleService.isServerRunning.collectLatest { isRunning ->
+            BluetoothServerService.isServerRunning.collectLatest { isRunning ->
                 serverStatusTextView.text = "Server status: ${if (isRunning) "Running" else "Stopped"}"
             }
         }
