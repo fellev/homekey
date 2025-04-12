@@ -178,7 +178,8 @@ class BluetoothServerService : Service() {
     private fun startServer() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                serverSocket = bluetoothAdapter?.listenUsingRfcommWithServiceRecord(SERVICE_NAME, SERVICE_UUID)
+                serverSocket =
+                    bluetoothAdapter?.listenUsingRfcommWithServiceRecord(SERVICE_NAME, SERVICE_UUID)
                 Log.i(TAG, "Server started, waiting for connections...")
 
                 while (true) {
