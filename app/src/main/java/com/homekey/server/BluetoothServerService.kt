@@ -42,20 +42,26 @@ import android.os.Build
 import android.os.IBinder
 import android.os.ParcelUuid
 import android.util.Log
+import android.widget.TextView
 import androidx.annotation.RequiresPermission
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.getSystemService
+import com.homekey.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.UUID
 
 
@@ -90,6 +96,11 @@ class BluetoothServerService : Service() {
         val serverLogsState: MutableStateFlow<String> = MutableStateFlow("")
         val _isServerRunning = MutableStateFlow(false)
         val isServerRunning: StateFlow<Boolean> get() = _isServerRunning
+        val _isConnected = MutableStateFlow(false)
+        val isConnected: StateFlow<Boolean> get() = _isConnected
+        val _lastConnectionTime = MutableStateFlow<String>("Never")
+        val lastConnectionTime: StateFlow<String> get() = _lastConnectionTime
+
 
     }
 
@@ -103,11 +114,11 @@ class BluetoothServerService : Service() {
         }
 
         if (permission == PackageManager.PERMISSION_GRANTED) {
-            startInForeground()
+//            startInForeground()
 
             serverLogsState.value = "Opening BT server...\n"
-            startServer()
-            _isServerRunning.value = true
+//            startServer()
+//            _isServerRunning.value = true
         } else {
             serverLogsState.value = "Missing connect permission\n"
             stopSelf()
@@ -119,15 +130,22 @@ class BluetoothServerService : Service() {
         if (intent == null || !hasAdvertisingPermission()) {
             return START_NOT_STICKY
         }
+
+        // Always start foreground first
+        startInForeground()
+
         when (intent.action) {
             ACTION_START_SERVER -> {
                 serverLogsState.value += "Start bluetooth server\n"
-                //TODO: Call to start server API
+                startServer()
+                _isServerRunning.value = true
             }
 
             ACTION_STOP_SERVER -> {
                 serverLogsState.value += "Start bluetooth server\n"
-                //TODO: Call to stop server API
+                stopServer()
+                _isServerRunning.value = false
+                stopSelf()
             }
 
             else -> throw IllegalArgumentException("Unknown action")
@@ -177,23 +195,32 @@ class BluetoothServerService : Service() {
     @SuppressLint("MissingPermission")
     private fun startServer() {
         CoroutineScope(Dispatchers.IO).launch {
-            try {
-                serverSocket =
-                    bluetoothAdapter?.listenUsingRfcommWithServiceRecord(SERVICE_NAME, SERVICE_UUID)
+            while (true) {
+                try {
+                    serverSocket =
+                        bluetoothAdapter?.listenUsingRfcommWithServiceRecord(
+                            SERVICE_NAME,
+                            SERVICE_UUID
+                        )
 
-                Log.i(TAG, "Server started, waiting for connections...")
+                    Log.i(TAG, "Server started, waiting for connections...")
 
-                while (true) {
                     val socket: BluetoothSocket? = serverSocket?.accept() // Blocking call
+                    Log.i(TAG, "Closing the socket")
+                    serverSocket?.close() // Close after accepting one client
                     socket?.let {
+                        updateConnectionStatus(true)
                         val deviceName = it.remoteDevice.name ?: "Unknown Device"
                         Log.i(TAG, "Device connected: $deviceName")
                         broadcastDeviceConnected(deviceName)
+                        showConnectionNotification(deviceName)
                         handleConnection(it)
                     }
+                } catch (e: IOException) {
+                    Log.e(TAG, "Error in server socket", e)
+                    updateConnectionStatus(false)
+                    delay(1) // Wait a bit before retrying
                 }
-            } catch (e: IOException) {
-                Log.e(TAG, "Error in server socket", e)
             }
         }
     }
@@ -217,6 +244,7 @@ class BluetoothServerService : Service() {
 
                         while (true) {
                             try {
+//                                socket.outputStream.write(0)
                                 // Read data from the input stream
                                 bytes = inputStream.read(buffer)
                                 if (bytes > 0) {
@@ -228,6 +256,7 @@ class BluetoothServerService : Service() {
                                 }
                             } catch (e: IOException) {
                                 Log.e(TAG, "Error reading from input stream", e)
+                                updateConnectionStatus(false)
                                 break // Exit the loop if there's an error
                             }
                         }
@@ -236,6 +265,11 @@ class BluetoothServerService : Service() {
                 }
             } catch (e: IOException) {
                 Log.e(TAG, "Error handling connection", e)
+            } finally {
+                updateConnectionStatus(false)
+                Log.i(TAG, "Disconnected. Restarting server...")
+                delay(1000) // Short pause before restarting
+//                startServer()
             }
         }
     }
@@ -270,5 +304,28 @@ class BluetoothServerService : Service() {
         BluetoothProfile.STATE_DISCONNECTED -> "Disconnected"
         BluetoothProfile.STATE_DISCONNECTING -> "Disconnecting"
         else -> "N/A"
+    }
+
+    private fun showConnectionNotification(deviceName: String) {
+        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(applicationInfo.icon)
+            .setContentTitle("Bluetooth device connected")
+            .setContentText("Connected to $deviceName")
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .build()
+
+        NotificationManagerCompat.from(this).notify(
+            NOTIFICATION_ID + 1, // Make sure it's different from the foreground ID
+            notification
+        )
+    }
+
+    private fun updateConnectionStatus(connected: Boolean) {
+        _isConnected.value = connected
+        if (connected) {
+            val time = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+            _lastConnectionTime.value = time
+        }
     }
 }

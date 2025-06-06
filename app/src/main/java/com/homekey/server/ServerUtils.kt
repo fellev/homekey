@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.bluetooth.BluetoothAdapter
+import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
 
 object ServerUtils {
@@ -23,7 +24,7 @@ object ServerUtils {
         val intent = Intent(context, BluetoothServerService::class.java).apply {
             action = BluetoothServerService.ACTION_START_SERVER
         }
-        context.startService(intent)
+        ContextCompat.startForegroundService(context, intent)
     }
 
     fun stopServer(context: Context) {
