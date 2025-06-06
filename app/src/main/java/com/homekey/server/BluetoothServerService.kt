@@ -73,14 +73,14 @@ class BluetoothServerService : Service() {
         private const val TAG = "BluetoothServerService"
         private const val CHANNEL_ID = "BluetoothServerChannel"
         private const val NOTIFICATION_ID = 1
-        private const val SERVICE_NAME = "MyBluetoothService"
+        private const val SERVICE_NAME = "HomeKeyService"
         const val ACTION_DEVICE_CONNECTED =
             "com.example.com.com.com.homekey.server.ACTION_DEVICE_CONNECTED"
 
         // Random UUID for our service known between the client and server to allow communication
         val SERVICE_UUID: UUID =
-//            UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"); // SPP UUID
-            UUID.fromString("02031405-0607-1809-8A0B-0C80DF9E34FB"); // SPP UUID
+            UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"); // ESP32 SPP UUID
+//            UUID.fromString("02031405-0607-1809-8A0B-0C80DF9E34FB"); // SPP UUID
         const val ACTION_START_SERVER = "start_srv"
         const val ACTION_STOP_SERVER = "stop_srv"
         const val EXTRA_DEVICE_NAME = "device_name"
@@ -180,6 +180,7 @@ class BluetoothServerService : Service() {
             try {
                 serverSocket =
                     bluetoothAdapter?.listenUsingRfcommWithServiceRecord(SERVICE_NAME, SERVICE_UUID)
+
                 Log.i(TAG, "Server started, waiting for connections...")
 
                 while (true) {
